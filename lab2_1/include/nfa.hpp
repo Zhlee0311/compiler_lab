@@ -4,18 +4,18 @@
 #include <iostream>
 #include <set>
 
-class State;
+class StateNFA;
 
 class NFA
 {
 private:
-    std::set<State *> initialStates;
-    std::set<State *> acceptStates;
+    std::set<StateNFA *> initialStates;
+    std::set<StateNFA *> acceptStates;
 
 public:
     NFA(char character);
-    NFA(State *initial, State *accept);
-    NFA(std::set<State *> initialStates, std::set<State *> acceptStates);
+    NFA(StateNFA *initial, StateNFA *accept);
+    NFA(std::set<StateNFA *> initialStates, std::set<StateNFA *> acceptStates);
     ~NFA();
 
 public:
@@ -25,8 +25,8 @@ public:
 
     NFA *select(NFA *other);
 
-    std::set<State *> getInitialStates();
-    std::set<State *> getAcceptStates();
+    std::set<StateNFA *> getInitialStates();
+    std::set<StateNFA *> getAcceptStates();
 
 public:
     /**

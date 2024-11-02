@@ -1,8 +1,8 @@
 #include "nfa.hpp"
-#include "state.hpp"
+#include "state_nfa.hpp"
 
-int State::nextId = 0;                // 初始Id为0
-std::map<int, State *> State::states; // 所有Id与State的映射
+int StateNFA::nextId = 0;                // 初始Id为0
+std::map<int, StateNFA *> StateNFA::states; // 所有Id与State的映射
 
 int main()
 {
@@ -11,7 +11,7 @@ int main()
     while (std::cin >> input)
     {
         NFA *nfa = NFA::build(input);
-        auto states = State::getStates();
+        auto states = StateNFA::getStates();
 
         for (auto state : states)
         {
@@ -25,7 +25,7 @@ int main()
         }
 
         delete nfa;
-        State::clearStates();
+        StateNFA::clearStates();
         std::cout << "请输入正规表达式：" << std::endl;
     }
     return 0;

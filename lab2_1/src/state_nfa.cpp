@@ -1,11 +1,11 @@
-#include "state.hpp"
+#include "state_nfa.hpp"
 
-std::map<int, State *> State::getStates()
+std::map<int, StateNFA *> StateNFA::getStates()
 {
     return states;
 }
 
-void State::clearStates()
+void StateNFA::clearStates()
 {
     for (auto state : states)
     {
@@ -15,29 +15,29 @@ void State::clearStates()
     nextId = 0;
 }
 
-State::State()
+StateNFA::StateNFA()
 {
     Id = nextId;
     nextId++;
     states.emplace(Id, this);
 }
 
-State::~State()
+StateNFA::~StateNFA()
 {
     edges.clear();
 }
 
-void State::link(char condition, State *target)
+void StateNFA::link(char condition, StateNFA *target)
 {
     edges.push_back(std::pair<char, int>(condition, target->Id));
 }
 
-int State::getId()
+int StateNFA::getId()
 {
     return Id;
 }
 
-std::vector<std::pair<char, int>> State::getEdges()
+std::vector<std::pair<char, int>> StateNFA::getEdges()
 {
     return edges;
 }

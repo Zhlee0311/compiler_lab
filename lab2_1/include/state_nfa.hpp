@@ -1,13 +1,13 @@
-#ifndef __STATE_HPP
-#define __STATE_HPP
+#ifndef __STATE_NFA_HPP
+#define __STATE_NFA_HPP
 
 #include <vector>
 #include <map>
 
 /**
- * @brief State 记录状态之间的连接关系
+ * @brief StateNFA 记录状态之间的连接关系
  */
-class State
+class StateNFA
 {
 private:
     int Id;                                  // 唯一标识这个状态的Id
@@ -15,18 +15,18 @@ private:
 
 private:
     static int nextId;
-    static std::map<int, State *> states;
+    static std::map<int, StateNFA *> states;
 
 public:
-    static std::map<int, State *> getStates();
+    static std::map<int, StateNFA *> getStates();
     static void clearStates();
 
 public:
-    State();
+    StateNFA();
 
-    ~State();
+    ~StateNFA();
 
-    void link(char condition, State *target);
+    void link(char condition, StateNFA *target);
 
     int getId();
 

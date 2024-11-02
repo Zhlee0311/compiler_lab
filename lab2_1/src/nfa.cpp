@@ -1,4 +1,4 @@
-#include "state.hpp"
+#include "state_nfa.hpp"
 #include "nfa.hpp"
 #include "input.hpp"
 #include <stack>
@@ -13,21 +13,21 @@ std::string pre_process(std::string s);
 NFA::NFA(char character)
 {
 
-    State *initial = new State();
-    State *accept = new State();
+    StateNFA *initial = new StateNFA();
+    StateNFA *accept = new StateNFA();
     initial->link(character, accept);
 
     initialStates.insert(initial);
     acceptStates.insert(accept);
 }
 
-NFA::NFA(State *initial, State *accept)
+NFA::NFA(StateNFA *initial, StateNFA *accept)
 {
     initialStates.insert(initial);
     acceptStates.insert(accept);
 }
 
-NFA::NFA(std::set<State *> initialStates, std::set<State *> acceptStates)
+NFA::NFA(std::set<StateNFA *> initialStates, std::set<StateNFA *> acceptStates)
 {
     this->initialStates = initialStates;
     this->acceptStates = acceptStates;
@@ -41,24 +41,24 @@ NFA::~NFA()
 
 NFA *NFA::closure()
 {
-    State *initial_new = new State();
-    State *accept_new = new State();
+    StateNFA *initial_new = new StateNFA();
+    StateNFA *accept_new = new StateNFA();
 
     initial_new->link('#', accept_new);
 
-    for (State *initial : initialStates)
+    for (StateNFA *initial : initialStates)
     {
         initial_new->link('#', initial);
     }
 
-    for (State *accept : acceptStates)
+    for (StateNFA *accept : acceptStates)
     {
         accept->link('#', accept_new);
     }
 
-    for (State *accept : acceptStates)
+    for (StateNFA *accept : acceptStates)
     {
-        for (State *initial : initialStates)
+        for (StateNFA *initial : initialStates)
         {
             accept->link('#', initial);
         }
@@ -69,9 +69,9 @@ NFA *NFA::closure()
 
 NFA *NFA::concat(NFA *next)
 {
-    for (State *rear : acceptStates)
+    for (StateNFA *rear : acceptStates)
     {
-        for (State *front : next->initialStates)
+        for (StateNFA *front : next->initialStates)
         {
             rear->link('#', front);
         }
@@ -82,23 +82,23 @@ NFA *NFA::concat(NFA *next)
 
 NFA *NFA::select(NFA *other)
 {
-    State *initial_new = new State();
-    State *accept_new = new State();
+    StateNFA *initial_new = new StateNFA();
+    StateNFA *accept_new = new StateNFA();
 
-    for (State *initial : initialStates)
+    for (StateNFA *initial : initialStates)
     {
         initial_new->link('#', initial);
     }
 
-    for (State *initial : other->initialStates)
+    for (StateNFA *initial : other->initialStates)
     {
         initial_new->link('#', initial);
     }
-    for (State *accept : acceptStates)
+    for (StateNFA *accept : acceptStates)
     {
         accept->link('#', accept_new);
     }
-    for (State *accept : other->acceptStates)
+    for (StateNFA *accept : other->acceptStates)
     {
         accept->link('#', accept_new);
     }
@@ -106,12 +106,12 @@ NFA *NFA::select(NFA *other)
     return res;
 }
 
-std::set<State *> NFA::getInitialStates()
+std::set<StateNFA *> NFA::getInitialStates()
 {
     return initialStates;
 }
 
-std::set<State *> NFA::getAcceptStates()
+std::set<StateNFA *> NFA::getAcceptStates()
 {
     return acceptStates;
 }
