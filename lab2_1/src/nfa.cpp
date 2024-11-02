@@ -3,9 +3,13 @@
 #include <stack>
 #include <unordered_map>
 
+/*
 std::string trans_postfix(std::string s);
 std::string pre_process(std::string s);
-extern std::unordered_map<char, int> precedence;
+*/
+#include "input.hpp"
+
+//extern std::unordered_map<char, int> precedence;
 
 NFA::NFA(char character)
 {

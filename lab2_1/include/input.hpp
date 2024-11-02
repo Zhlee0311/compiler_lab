@@ -11,7 +11,7 @@
  * 字母A-Z(65-90)
  * 两个特殊符号'('和')'，不参与优先级运算
  */
-std::unordered_map<char, int> precedence = {
+static std::unordered_map<char, int> precedence = {
     {'*', 3}, // 闭包
     {'@', 2}, // 连接
     {'|', 1}  // 或

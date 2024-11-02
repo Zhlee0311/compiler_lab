@@ -1,6 +1,5 @@
 #include "state.hpp"
 
-
 std::map<int, State *> State::getStates()
 {
     return states;
