@@ -1,0 +1,1 @@
+/usr/bin/g++ -g CMakeFiles/build.dir/src/input.cpp.o CMakeFiles/build.dir/src/main.cpp.o CMakeFiles/build.dir/src/nfa.cpp.o CMakeFiles/build.dir/src/state.cpp.o -o build 

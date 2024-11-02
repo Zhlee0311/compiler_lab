@@ -1,0 +1,1 @@
+/usr/bin/g++ -g CMakeFiles/nfa.dir/src/input.cpp.o CMakeFiles/nfa.dir/src/main.cpp.o CMakeFiles/nfa.dir/src/nfa.cpp.o CMakeFiles/nfa.dir/src/state.cpp.o -o nfa 
