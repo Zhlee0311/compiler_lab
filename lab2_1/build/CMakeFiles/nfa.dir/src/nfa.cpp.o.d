@@ -158,11 +158,11 @@ CMakeFiles/nfa.dir/src/nfa.cpp.o: \
  /usr/include/c++/11/bits/ostream.tcc /usr/include/c++/11/istream \
  /usr/include/c++/11/bits/istream.tcc /usr/include/c++/11/set \
  /usr/include/c++/11/bits/stl_set.h \
- /usr/include/c++/11/bits/stl_multiset.h /usr/include/c++/11/stack \
- /usr/include/c++/11/deque /usr/include/c++/11/bits/stl_deque.h \
- /usr/include/c++/11/bits/deque.tcc /usr/include/c++/11/bits/stl_stack.h \
+ /usr/include/c++/11/bits/stl_multiset.h \
+ /home/ecs-user/dev/compile/lab2_1/include/input.hpp \
  /usr/include/c++/11/unordered_map /usr/include/c++/11/bits/hashtable.h \
  /usr/include/c++/11/bits/hashtable_policy.h \
  /usr/include/c++/11/bits/enable_special_members.h \
- /usr/include/c++/11/bits/unordered_map.h \
- /home/ecs-user/dev/compile/lab2_1/include/input.hpp
+ /usr/include/c++/11/bits/unordered_map.h /usr/include/c++/11/stack \
+ /usr/include/c++/11/deque /usr/include/c++/11/bits/stl_deque.h \
+ /usr/include/c++/11/bits/deque.tcc /usr/include/c++/11/bits/stl_stack.h

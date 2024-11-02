@@ -603,12 +603,12 @@ CMakeFiles/nfa.dir/src/nfa.cpp.o: ../src/nfa.cpp \
   /usr/include/c++/11/bits/stl_deque.h \
   /usr/include/c++/11/bits/deque.tcc \
   /usr/include/c++/11/bits/stl_stack.h \
+  ../include/input.hpp \
   /usr/include/c++/11/unordered_map \
   /usr/include/c++/11/bits/hashtable.h \
   /usr/include/c++/11/bits/hashtable_policy.h \
   /usr/include/c++/11/bits/enable_special_members.h \
-  /usr/include/c++/11/bits/unordered_map.h \
-  ../include/input.hpp
+  /usr/include/c++/11/bits/unordered_map.h
 
 CMakeFiles/nfa.dir/src/state.cpp.o: ../src/state.cpp \
   /usr/include/stdc-predef.h \

@@ -1,13 +1,12 @@
 #include "state.hpp"
 #include "nfa.hpp"
+#include "input.hpp"
 #include <stack>
-#include <unordered_map>
 
 /*
 std::string trans_postfix(std::string s);
 std::string pre_process(std::string s);
 */
-#include "input.hpp"
 
 //extern std::unordered_map<char, int> precedence;
 
