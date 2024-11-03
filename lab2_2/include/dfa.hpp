@@ -4,7 +4,6 @@
 #include <set>
 
 class StateDFA;
-class StateNFA;
 class NFA;
 
 class DFA
@@ -19,6 +18,11 @@ public:
 
 public:
     static DFA *build(NFA *nfa);
+
+public:
+    StateDFA *getInitialState();
+
+    std::set<StateDFA *> getAcceptStates();
 };
 
 #endif

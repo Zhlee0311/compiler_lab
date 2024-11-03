@@ -6,6 +6,7 @@
 #include <set>
 
 class StateNFA;
+class DFA;
 
 /**
  * @brief DFA的状态，即NFA的状态集合
@@ -24,7 +25,7 @@ private:
 public:
     static std::map<int, StateDFA *> getStates();
     static void clearStates();
-    static void showStates();
+    static void showStates(DFA * dfa);
 
 public:
     static std::set<StateNFA *> move(StateDFA *dfa_state, char a); // dfa状态的外拓

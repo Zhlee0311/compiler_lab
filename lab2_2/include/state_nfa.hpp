@@ -5,6 +5,8 @@
 #include <map>
 #include <set>
 
+class NFA;
+
 /**
  * @brief StateNFA 记录状态之间的连接关系
  */
@@ -21,7 +23,7 @@ private:
 public:
     static std::map<int, StateNFA *> getStates();
     static void clearStates();
-    static void showStates();
+    static void showStates(NFA * nfa);
 
 public:
     StateNFA();

@@ -1,4 +1,5 @@
 #include "state_nfa.hpp"
+#include "nfa.hpp"
 #include <queue>
 #include <iostream>
 
@@ -15,6 +16,37 @@ void StateNFA::clearStates()
     }
     states.clear();
     nextId = 0;
+}
+
+void StateNFA::showStates(NFA *nfa)
+{
+    auto inits = nfa->getInitialStates();
+    auto accs = nfa->getAcceptStates();
+
+    std::cout << "============================" << std::endl;
+    std::cout << "\033[32m" << "以下为NFA:" << "\033[0m" << std::endl;
+    std::cout << "\033[33m" << "初态: " << "\033[0m" << std::endl;
+    for (const auto &init : inits)
+    {
+        std::cout << "\033[35m" << "State" << init->getId() << " " << "\033[0m";
+    }
+    std::cout << std::endl;
+    std::cout << "\033[31m" << "终态:" << "\033[0m" << std::endl;
+    for (const auto &acc : accs)
+    {
+        std::cout << "\033[35m" << "State" << acc->getId() << " " << "\033[0m";
+    }
+    std::cout << "\n\033[36m" << "NFA的转换关系:" << "\033[0m" << std::endl;
+    for (const auto &state : states)
+    {
+        const auto &edges = state.second->getEdges();
+        std::cout << "\033[35m" << "State" << state.first << ":" << "\033[0m" << std::endl;
+        for (const auto &edge : edges)
+        {
+            std::cout << " + " << "\033[34m" << edge.first << "\033[0m" << " ---> " << "\033[35m" << "State" << edge.second << "\033[0m" << std::endl;
+        }
+    }
+    std::cout << "============================" << std::endl;
 }
 
 StateNFA::StateNFA()
@@ -96,18 +128,4 @@ int StateNFA::getId()
 std::vector<std::pair<char, int>> StateNFA::getEdges()
 {
     return edges;
-}
-
-void StateNFA::showStates()
-{
-    std::cout << "\033[32m" << "以下为NFA:" << "\033[0m" << std::endl;
-    for (const auto &state : states)
-    {
-        const auto &edges = state.second->getEdges();
-        std::cout << "\033[35m" << "State" << state.first << ":" << "\033[0m" << std::endl;
-        for (const auto &edge : edges)
-        {
-            std::cout << " + " << edge.first << " ---> " << "\033[35m" << "State" << edge.second << "\033[0m" << std::endl;
-        }
-    }
 }

@@ -13,6 +13,11 @@ DFA::DFA(StateDFA *param1, std::set<StateDFA *> param2)
     acceptStates = param2;
 }
 
+DFA::~DFA()
+{
+    acceptStates.clear(); // initialState不需要释放，在StateDFA中由clearState统一管理
+}
+
 DFA *DFA::build(NFA *nfa)
 {
 
@@ -22,7 +27,7 @@ DFA *DFA::build(NFA *nfa)
     {
         std::set<StateNFA *> epsilon_closure = nfa_initial->epsilonClosure();
         ent.insert(epsilon_closure.begin(), epsilon_closure.end());
-    }
+    } // 对输入的nfa的所有初态求epsilon_closure，从而确定dfa的初态
 
     auto param1 = new StateDFA(ent);
 
@@ -56,13 +61,15 @@ DFA *DFA::build(NFA *nfa)
 
     std::set<StateDFA *> param2;
 
+    auto nfa_accs = nfa->getAcceptStates(); // 输入 "nfa" 的所有终态
+
     // 遍历所有dfa_state
-    for (const auto &dfa_state : dfa_states)
+    for (const auto &dfa_state : StateDFA::getStates())
     {
         // 检查其中的nfa_state是否包含输入 "nfa" 的终态
         for (const auto &nfa_state : dfa_state.second->getEntity())
         {
-            if (nfa->getAcceptStates().find(nfa_state) != nfa->getAcceptStates().end())
+            if (nfa_accs.find(nfa_state) != nfa_accs.end())
             {
                 param2.insert(dfa_state.second);
             }
@@ -74,7 +81,12 @@ DFA *DFA::build(NFA *nfa)
     return res;
 }
 
-DFA::~DFA()
+StateDFA *DFA::getInitialState()
 {
-    acceptStates.clear();
+    return initialState;
+}
+
+std::set<StateDFA *> DFA::getAcceptStates()
+{
+    return acceptStates;
 }

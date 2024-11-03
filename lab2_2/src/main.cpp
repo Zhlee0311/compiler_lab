@@ -13,11 +13,14 @@ std::unordered_map<char, int> Share::precedence = {
 
 std::unordered_set<char> Share::alphabet;
 
+
 int StateNFA::nextId = 0;
 std::map<int, StateNFA *> StateNFA::states;
 
+
 int StateDFA::nextId = 0;
 std::map<int, StateDFA *> StateDFA::states;
+
 
 int main()
 {
@@ -25,17 +28,17 @@ int main()
     std::cout << "请输入正规表达式:" << std::endl;
     while (std::cin >> input)
     {
-        auto nfa = NFA::build(input);
-        auto dfa = DFA::build(nfa);
+        auto nfa = NFA::build(input); // 构建NFA
+        auto dfa = DFA::build(nfa); // 构建DFA
 
-        StateNFA::showStates();
-        StateDFA::showStates();
+        StateNFA::showStates(nfa); // 展示
+        StateDFA::showStates(dfa);
 
-        delete nfa;
-        delete dfa;
+        delete nfa;  // 释放nfa内存
+        delete dfa; // 释放dfa内存
 
-        StateNFA::clearStates();
-        StateDFA::clearStates();
+        StateNFA::clearStates(); // 释放StateNFA内存
+        StateDFA::clearStates(); // 释放StateNFA内存
 
         std::cout << "请输入正规表达式:" << std::endl;
     }

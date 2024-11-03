@@ -85,7 +85,7 @@ void get_characters(std::string s)
     {
         if (Share::precedence.find(ch) == Share::precedence.end())
         {
-            Share::alphabet.insert(ch);
+            Share::alphabet.insert(ch); // 若优先级表中未找到ch，则代表它是个字母，加入字母表
         }
     }
 }

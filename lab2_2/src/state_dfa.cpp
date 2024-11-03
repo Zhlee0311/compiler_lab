@@ -1,5 +1,6 @@
 #include "state_dfa.hpp"
 #include "state_nfa.hpp"
+#include "dfa.hpp"
 #include <iostream>
 
 std::map<int, StateDFA *> StateDFA::getStates()
@@ -17,18 +18,27 @@ void StateDFA::clearStates()
     nextId = 0;
 }
 
-void StateDFA::showStates()
+void StateDFA::showStates(DFA *dfa)
 {
     std::cout << "\033[32m" << "以下为DFA:" << "\033[0m" << std::endl;
+    std::cout << "\033[33m" << "初态: " << "\033[0m" << std::endl;
+    std::cout << "\033[35m" << "State" << dfa->getInitialState()->getId() << "\033[0m" << std::endl;
+    std::cout << "\033[31m" << "终态:" << "\033[0m" << std::endl;
+    for (const auto &acc : dfa->getAcceptStates())
+    {
+        std::cout << "\033[35m" << "State" << acc->getId() << " " << "\033[0m";
+    }
+     std::cout << "\n\033[36m" << "DFA的转换关系:" << "\033[0m" << std::endl;
     for (const auto &state : states)
     {
         const auto &edges = state.second->getEdges();
         std::cout << "\033[35m" << "State" << state.first << ":" << "\033[0m" << std::endl;
         for (const auto &edge : edges)
         {
-            std::cout << " + " << edge.first << " ---> " << "\033[35m" << "State" << edge.second << "\033[0m" << std::endl;
+            std::cout << " + " << "\033[34m" << edge.first << "\033[0m" << " ---> " << "\033[35m" << "State" << edge.second << "\033[0m" << std::endl;
         }
     }
+    std::cout << "============================" << std::endl;
 }
 
 std::set<StateNFA *> StateDFA::move(StateDFA *dfa_state, char a)
