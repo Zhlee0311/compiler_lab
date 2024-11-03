@@ -19,26 +19,33 @@ private:
 
 private:
     static int nextId;
-    static std::map<int, StateDFA *> states;
+    static std::map<int, StateDFA *> states; // 统一管理所有StateDFA的映射
 
 public:
     static std::map<int, StateDFA *> getStates();
     static void clearStates();
+    static void showStates();
 
 public:
-    StateDFA();
+    static std::set<StateNFA *> move(StateDFA *dfa_state, char a); // dfa状态的外拓
+    static StateDFA *search(std::set<StateNFA *> ent);             // 搜寻是否已存在代表此实体的dfa状态
+
+public:
+    StateDFA(std::set<StateNFA *> ent);
 
     ~StateDFA();
 
     void link(char condition, StateDFA *target);
 
-    std::set<StateNFA *> epsilonClosure(); // 集合的epsilon_closure
+    // std::set<StateNFA *> epsilonClosure(); // dfa状态的epsilon_closure
 
-    std::set<StateNFA *> charClosure(char a); // 集合的char_closure
+    std::set<StateNFA *> charClosure(char a); // dfa状态的char_closure
 
     int getId();
 
     std::vector<std::pair<char, int>> getEdges();
+
+    std::set<StateNFA *> getEntity();
 };
 
 #endif

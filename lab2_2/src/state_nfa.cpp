@@ -1,5 +1,6 @@
 #include "state_nfa.hpp"
-#include "queue"
+#include <queue>
+#include <iostream>
 
 std::map<int, StateNFA *> StateNFA::getStates()
 {
@@ -95,4 +96,18 @@ int StateNFA::getId()
 std::vector<std::pair<char, int>> StateNFA::getEdges()
 {
     return edges;
+}
+
+void StateNFA::showStates()
+{
+    std::cout << "\033[32m" << "以下为NFA:" << "\033[0m" << std::endl;
+    for (const auto &state : states)
+    {
+        const auto &edges = state.second->getEdges();
+        std::cout << "\033[35m" << "State" << state.first << ":" << "\033[0m" << std::endl;
+        for (const auto &edge : edges)
+        {
+            std::cout << " + " << edge.first << " ---> " << "\033[35m" << "State" << edge.second << "\033[0m" << std::endl;
+        }
+    }
 }

@@ -1,6 +1,7 @@
 #include "state_nfa.hpp"
 #include "nfa.hpp"
 #include "input.hpp"
+#include "share.hpp"
 #include <stack>
 
 /*
@@ -8,7 +9,7 @@ std::string trans_postfix(std::string s);
 std::string pre_process(std::string s);
 */
 
-//extern std::unordered_map<char, int> precedence;
+// extern std::unordered_map<char, int> precedence;
 
 NFA::NFA(char character)
 {
@@ -123,7 +124,7 @@ NFA *NFA::build(std::string input)
 
     for (char ch : input)
     {
-        if (precedence.find(ch) == precedence.end())
+        if (Share::precedence.find(ch) == Share::precedence.end())
         {
             NFA *tmp = new NFA(ch);
             tmps.push(tmp);

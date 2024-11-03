@@ -1,5 +1,6 @@
 #include "state_dfa.hpp"
 #include "state_nfa.hpp"
+#include <iostream>
 
 std::map<int, StateDFA *> StateDFA::getStates()
 {
@@ -16,8 +17,48 @@ void StateDFA::clearStates()
     nextId = 0;
 }
 
-StateDFA::StateDFA()
+void StateDFA::showStates()
 {
+    std::cout << "\033[32m" << "以下为DFA:" << "\033[0m" << std::endl;
+    for (const auto &state : states)
+    {
+        const auto &edges = state.second->getEdges();
+        std::cout << "\033[35m" << "State" << state.first << ":" << "\033[0m" << std::endl;
+        for (const auto &edge : edges)
+        {
+            std::cout << " + " << edge.first << " ---> " << "\033[35m" << "State" << edge.second << "\033[0m" << std::endl;
+        }
+    }
+}
+
+std::set<StateNFA *> StateDFA::move(StateDFA *dfa_state, char a)
+{
+    std::set<StateNFA *> char_closure = dfa_state->charClosure(a); // 对这个DFA状态进行符号闭包运算
+    std::set<StateNFA *> res;
+    for (const auto &nfa_state : char_closure)
+    {
+        auto epsilon_closure = nfa_state->epsilonClosure();
+        res.insert(epsilon_closure.begin(), epsilon_closure.end());
+    }
+    return res;
+}
+
+StateDFA *StateDFA::search(std::set<StateNFA *> ent)
+{
+    for (const auto &pair : states)
+    {
+        StateDFA *state = pair.second;
+        if (state->entity == ent)
+        {
+            return state; // 存在
+        }
+    }
+    return nullptr; // 不存在
+}
+
+StateDFA::StateDFA(std::set<StateNFA *> ent)
+{
+    entity = ent;
     Id = nextId;
     nextId++;
     states.emplace(Id, this);
@@ -34,6 +75,7 @@ void StateDFA::link(char condition, StateDFA *target)
     edges.push_back(std::pair<char, int>(condition, target->getId()));
 }
 
+/*
 std::set<StateNFA *> StateDFA::epsilonClosure()
 {
     std::set<StateNFA *> res;
@@ -43,18 +85,19 @@ std::set<StateNFA *> StateDFA::epsilonClosure()
         res.insert(closure.begin(), closure.end());
     }
     return res;
-} // 集合的epsilon_closure
+} // dfa状态的epsilon_closure
+*/
 
 std::set<StateNFA *> StateDFA::charClosure(char a)
 {
     std::set<StateNFA *> res;
-    for (const auto &state : entity)
+    for (const auto &nfa_state : entity)
     {
-        auto closure = state->charClosure(a);
-        res.insert(closure.begin(), closure.end());
+        auto char_closure = nfa_state->charClosure(a); // 对单个NFA状态进行符号闭包运算
+        res.insert(char_closure.begin(), char_closure.end());
     }
     return res;
-} // 集合的char_closure
+} // dfa状态的char_closure
 
 int StateDFA::getId()
 {
@@ -64,4 +107,9 @@ int StateDFA::getId()
 std::vector<std::pair<char, int>> StateDFA::getEdges()
 {
     return edges;
+}
+
+std::set<StateNFA *> StateDFA::getEntity()
+{
+    return std::set<StateNFA *>(entity);
 }

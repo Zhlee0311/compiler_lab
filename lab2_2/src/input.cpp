@@ -1,8 +1,10 @@
+#include "share.hpp"
 #include "input.hpp"
 #include <stack>
 
 std::string pre_process(std::string s)
 {
+    get_characters(s);
     auto check = [s](int i) -> bool
     {
         if (s[i] == '|' || s[i + 1] == '|' || s[i] == '(' || s[i + 1] == ')' || s[i + 1] == '*')
@@ -55,13 +57,13 @@ std::string trans_postfix(std::string s)
         {
             op_stack.push(cur);
         }
-        else if (precedence.find(cur) == precedence.end())
+        else if (Share::precedence.find(cur) == Share::precedence.end())
         {
             res += cur;
         }
         else
         {
-            while (!op_stack.empty() && precedence[op_stack.top()] >= precedence[cur])
+            while (!op_stack.empty() && Share::precedence.at(op_stack.top()) >= Share::precedence.at(cur))
             {
                 res += op_stack.top();
                 op_stack.pop();
@@ -75,4 +77,15 @@ std::string trans_postfix(std::string s)
         op_stack.pop();
     }
     return res;
+}
+
+void get_characters(std::string s)
+{
+    for (const auto &ch : s)
+    {
+        if (Share::precedence.find(ch) == Share::precedence.end())
+        {
+            Share::alphabet.insert(ch);
+        }
+    }
 }

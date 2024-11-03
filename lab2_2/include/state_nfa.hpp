@@ -21,6 +21,7 @@ private:
 public:
     static std::map<int, StateNFA *> getStates();
     static void clearStates();
+    static void showStates();
 
 public:
     StateNFA();
@@ -29,9 +30,9 @@ public:
 
     void link(char condition, StateNFA *target);
 
-    std::set<StateNFA*> epsilonClosure();
+    std::set<StateNFA *> epsilonClosure();
 
-    std::set<StateNFA*> charClosure(char a);
+    std::set<StateNFA *> charClosure(char a);
 
     int getId();
 
