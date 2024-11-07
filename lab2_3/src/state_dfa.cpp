@@ -35,7 +35,14 @@ void StateDFA::showStates(DFA *dfa)
         std::cout << "\033[35m" << "State" << state.first << ":" << "\033[0m" << std::endl;
         for (const auto &edge : edges)
         {
-            std::cout << " + " << "\033[34m" << edge.first << "\033[0m" << " ---> " << "\033[35m" << "State" << edge.second << "\033[0m" << std::endl;
+            if (edge.first == '#')
+            {
+                std::cout << " + " << "\033[34m" << "ε" << "\033[0m" << " ---> " << "\033[35m" << "State" << edge.second << "\033[0m" << std::endl;
+            }
+            else
+            {
+                std::cout << " + " << "\033[34m" << edge.first << "\033[0m" << " ---> " << "\033[35m" << "State" << edge.second << "\033[0m" << std::endl;
+            }
         }
     }
     std::cout << "============================" << std::endl;
