@@ -34,7 +34,6 @@ int main()
         auto dfa = DFA::build(nfa);   // 构建DFA
         auto mdfa= MDFA::build(dfa); // 构建最小DFA
 
-
         StateNFA::showStates(nfa); // 展示
         StateDFA::showStates(dfa);
         StateMDFA::showStates(mdfa);
@@ -42,7 +41,6 @@ int main()
         delete nfa; // 释放nfa内存
         delete dfa; // 释放dfa内存
         delete mdfa; // 释放mdfa内存
-
 
         StateMDFA::clearStates(); // 释放StateMDFA内存
         StateDFA::clearStates(); // 释放StateNFA内存
