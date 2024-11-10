@@ -26,27 +26,35 @@ std::map<int, StateMDFA *> StateMDFA::states;
 
 int main()
 {
-    std::string input;
-    std::cout << "请输入正规表达式:" << std::endl;
-    while (std::cin >> input)
+    while (true)
     {
+        std::cout << "请输入正规表达式:" << std::endl;
+        std::string input;
+        std::cin >> input;
+
         auto nfa = NFA::build(input); // 构建NFA
         auto dfa = DFA::build(nfa);   // 构建DFA
-        auto mdfa= MDFA::build(dfa); // 构建最小DFA
+        auto mdfa = MDFA::build(dfa); // 构建最小DFA
 
         StateNFA::showStates(nfa); // 展示
         StateDFA::showStates(dfa);
         StateMDFA::showStates(mdfa);
 
-        delete nfa; // 释放nfa内存
-        delete dfa; // 释放dfa内存
+        delete nfa;  // 释放nfa内存
+        delete dfa;  // 释放dfa内存
         delete mdfa; // 释放mdfa内存
 
         StateMDFA::clearStates(); // 释放StateMDFA内存
-        StateDFA::clearStates(); // 释放StateNFA内存
-        StateNFA::clearStates(); // 释放StateNFA内存
+        StateDFA::clearStates();  // 释放StateNFA内存
+        StateNFA::clearStates();  // 释放StateNFA内存
 
-        std::cout << "请输入正规表达式:" << std::endl;
+        char choice;
+        std::cout << "是否继续处理另一个正规表达式？(y/n): ";
+        std::cin >> choice;
+        if (choice != 'y' && choice != 'Y')
+        {
+            break;
+        }
     }
     return 0;
 }

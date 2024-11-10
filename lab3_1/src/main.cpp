@@ -5,14 +5,28 @@ std::unordered_map<std::string, std::unordered_set<std::string>> Grammar::gramma
 
 int main()
 {
-    Grammar::readGrammar();
-    if (!Grammar::grammar.empty())
+    while (true)
     {
-        std::cout << "转换前的文法:" << std::endl;
-        Grammar::printGrammar();
-        Grammar::elr();
-        std::cout << "转换后的文法:" << std::endl;
-        Grammar::printGrammar();
+        Grammar::readGrammar();
+
+        if (!Grammar::grammar.empty())
+        {
+            std::cout << "转换前的文法:" << std::endl;
+            Grammar::printGrammar();
+            Grammar::elr();
+            std::cout << "转换后的文法:" << std::endl;
+            Grammar::printGrammar();
+        }
+
+        Grammar::clearGrammar();
+
+        std::cout << "是否继续处理另一个文件？(y/n): ";
+        char choice;
+        std::cin >> choice;
+        if (choice != 'y' && choice != 'Y')
+        {
+            break;
+        }
     }
     return 0;
 }
