@@ -1,13 +1,39 @@
 #include "grammar.hpp"
+#include "trie.hpp"
 #include <fstream>
 #include <iostream>
 #include <filesystem>
 #include <algorithm>
+#include <cctype>
 
 namespace fs = std::filesystem;
 
+/**
+ * @brief 更新该文法中的非终结符
+ */
+void Grammar::updateNterminal()
+{
+    nterminal.clear();
+    for (const auto &[left, rights] : grammar)
+    {
+        nterminal.insert(left);
+        for (const auto &right : rights)
+        {
+            for (const auto &ch : right)
+            {
+                if (isupper(ch))
+                {
+                    nterminal.insert(std::string(1, ch));
+                }
+            }
+        }
+    }
+}
+
 void Grammar::clearGrammar()
 {
+    terminal.clear();
+    nterminal.clear();
     grammar.clear();
 }
 
@@ -64,6 +90,9 @@ void Grammar::readGrammar()
             grammar[non_terminal].insert(rights.substr(start));
         }
     }
+
+    updateNterminal();
+
     std::cout << "\033[32m" << "文法读取成功" << "\033[0m" << std::endl;
     file.close();
 }
@@ -84,9 +113,59 @@ std::unordered_map<std::string, std::unordered_set<std::string>> Grammar::getGra
     return grammar;
 }
 
+/**
+ * @brief 利用trie树提取左公因子（会修改文法）
+ */
+void Grammar::exlp()
+{
+    for (auto it = grammar.begin(); it != grammar.end(); it++)
+    {
+        auto &rights = it->second; // ex. ab | abc | abd | da | dc | e
+
+        Trie *trie = new Trie(rights);
+        auto refs = trie->getPublicPrefixes(); // ex. {ab + {c,d,ε}  d + {a,c} }
+        delete trie;
+
+        std::unordered_map<std::string, std::string> new_nonterminals; // 公共前缀后跟新的非终结符
+        for (const auto &[pub, sufs] : refs)
+        {
+            for (int i = 0; i < 26; i++)
+            {
+                std::string new_nonterminal = std::string(1, 65 + i); // 待替换的新的非终结符
+                // 检查这个非终结符是否使用
+                if (!nterminal.count(new_nonterminal))
+                {
+                    new_nonterminals[pub] = new_nonterminal;
+                    break;
+                }
+            }
+
+            rights.insert(pub + new_nonterminals[pub]);
+
+            for (const auto &suf : sufs)
+            {
+                if (suf == epsilon)
+                {
+                    rights.erase(pub);
+                }
+                else
+                {
+                    rights.erase(pub + suf);
+                }
+                grammar[new_nonterminals[pub]].insert(suf);
+            }
+            updateNterminal();
+        }
+    }
+}
+
+/**
+ * @brief 消除左递归（会修改文法）
+ * @attention 这里的non_terminals仅包含产生式左边的非终结符号
+ */
 void Grammar::elr()
 {
-    std::unordered_set<std::string> non_terminals;
+    std::unordered_set<std::string> non_terminals; // 这里的non_terminals仅包含产生式左边的非终结符号
 
     for (const auto &[non_terminal, _] : grammar)
     {
@@ -116,8 +195,12 @@ void Grammar::elr()
         }
         elrDirect(*it1);
     }
+    updateNterminal();
 }
 
+/**
+ * @brief 消除直接左递归（配合elr使用）
+ */
 void Grammar::elrDirect(const std::string &non_terminal)
 {
     std::unordered_set<std::string> alpha; // 存储直接左递归的部分
@@ -148,6 +231,6 @@ void Grammar::elrDirect(const std::string &non_terminal)
         {
             grammar[new_non_terminal].insert(a + new_non_terminal); // A' -> αA'
         }
-        grammar[new_non_terminal].insert("ε"); // A' -> ε
+        grammar[new_non_terminal].insert(epsilon); // A' -> ε
     }
 }

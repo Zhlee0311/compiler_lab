@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(ELR) # Elimate Left Recursion
+project(EXLP) # Elimate Left Recursion
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE CXX_STANDARD_REQUIRED True)
@@ -11,5 +11,5 @@ include_directories(include)
 file(GLOB SOURCES "src/*.cpp")
 
 
-add_executable(elr ${SOURCES})
+add_executable(exlp ${SOURCES})
 
