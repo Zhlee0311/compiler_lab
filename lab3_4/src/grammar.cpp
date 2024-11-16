@@ -29,7 +29,7 @@ void Grammar::updateNterminal()
                 if (isupper(ch))
                 {
                     nterminal.insert(std::string(1, ch));
-                }
+                } // 大写字母即为非终结符，仅考虑单个字符
             }
         }
     }
@@ -54,7 +54,7 @@ void Grammar::updateTerminal()
                 if (!isupper(ch))
                 {
                     terminal.insert(std::string(1, ch));
-                }
+                } // 不是大写字母即为终结符，仅考虑单个字符
             }
         }
     }
@@ -423,7 +423,7 @@ void Grammar::followInit()
                     if (pos == std::string::npos)
                     {
                         continue;
-                    }
+                    } // 该产生式中不含此非终结符
                     else if (pos == right.size() - 1)
                     {
                         auto frontAppend = followSets[left];
@@ -434,7 +434,7 @@ void Grammar::followInit()
                                 changed = true;
                             }
                         }
-                    }
+                    }// 该非终结符在产生式右部的最后
                     else
                     {
                         auto backAppend = firstGet(right.substr(pos + 1));
