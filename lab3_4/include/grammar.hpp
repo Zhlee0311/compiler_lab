@@ -7,10 +7,10 @@
 
 class Grammar
 {
-public:
+private:
     /**
      * @brief 所有的非终结符，无论是否在产生式左边出现过
-     * @attention 判断规则：大写字母即为非终结符，仅考虑单个字符
+     * @attention 判断规则：大写字母即为非终结符，仅考虑单个字符或带'的非终结符
      */
     static std::unordered_set<std::string> nterminal;
 
@@ -57,11 +57,11 @@ private:
     static void updateTerminal();
     static void updateEpsilons();
 
-public:
+private:
     static void firstInit();
     static void followInit();
     /**
-     * @brief 求一条产生式的select集
+     * @brief 求 一条产生式 的select集
      */
     static std::unordered_set<std::string> selectGet(std::string left, std::string right);
 

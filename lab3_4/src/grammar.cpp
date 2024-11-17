@@ -30,14 +30,14 @@ void Grammar::updateNterminal()
             {
                 if (isupper(right[i]) && right[i + 1] != '\'')
                 {
-                    nterminal.insert(std::string(1, right[i]));
+                    nterminal.insert(right.substr(i, 1));
                 }
                 else if (isupper(right[i]) && right[i + 1] == '\'')
                 {
                     nterminal.insert(right.substr(i, 2));
                     i++;
                 }
-            } // 大写字母即为非终结符，仅考虑单个字符
+            } // 大写字母即为非终结符，仅考虑单个字符或带'的非终结符
         }
     }
 }
@@ -340,7 +340,7 @@ void Grammar::firstInit()
 
                     std::string symbol;
 
-                    if (nterminal.count(right.substr(i, 1)) && right[i + 1] == '\'')
+                    if (nterminal.count(right.substr(i, 2)))
                     {
                         symbol = right.substr(i, 2);
                         i++;
@@ -452,7 +452,23 @@ void Grammar::followInit()
             {
                 for (const auto &right : rights)
                 {
-                    size_t pos = right.find(nt);
+                    size_t pos = std::string::npos;
+                    if (nt.size() == 2)
+                    {
+                        pos = right.find(nt); // T' 必须找到 T'
+                    }
+                    else
+                    {
+                        for (int i = 0; i < right.size(); i++)
+                        {
+                            if (right[i] == nt[0] && (i == right.size() - 1 || right[i + 1] != '\''))
+                            {
+                                pos = i;
+                                break;
+                            }
+                        }
+                    }
+
                     if (pos == std::string::npos)
                     {
                         continue;
@@ -601,7 +617,7 @@ void Grammar::parseLL1(std::string sentence)
         {
             if (!table.count({curTop, curInput}))
             {
-                std::cout << "\033[31m" << "Syntax Error: " << "No production for " << curTop << " => " << curInput << "\033[0m" << std::endl;
+                std::cout << "\033[31m" << "Syntax Error: " << "No production for " << curTop << " when facing " << curInput << "\033[0m" << std::endl;
                 return;
             }
             else
@@ -612,7 +628,7 @@ void Grammar::parseLL1(std::string sentence)
                     int pos = replace.size() - 1;
                     while (pos >= 0)
                     {
-                        if (replace[pos] == '\'')
+                        if (replace[pos] == '\'' && nterminal.count(replace.substr(pos - 1, 2)))
                         {
                             tmp.push(replace.substr(pos - 1, 2));
                             pos -= 2;
@@ -643,5 +659,5 @@ void Grammar::parseLL1(std::string sentence)
             }
         } // 若当前处理的是终结符
     }
-    std::cout << "\033[33m" << "Parsing Success: " << matched << "\033[0m" << std::endl;
+    std::cout << "\033[35m" << "Parsing Success: " << matched << "\033[0m" << std::endl;
 }
