@@ -6,8 +6,9 @@
 ## Usage
 ```shell
 $ git clone git@github.com:Zhlee0311/compiler_lab.git
-$ cd lab...
+$ cd labXXX
 $ mkdir build && cd build
+$ cmake ..
 $ make -j4
 $ ./${target_name}
 ```
