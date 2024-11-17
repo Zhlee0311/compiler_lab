@@ -3,6 +3,15 @@
 
 > 序号最大的实验 **完善程度** 最高，根据 **情况复杂程度** 修复了前面实验的bug
 
+## Usage
+```shell
+$ git clone git@github.com:Zhlee0311/compiler_lab.git
+$ cd lab...
+$ mkdir build && cd build
+$ make -j4
+$ ./${target_name}
+```
+
 ### 1. 编译器使用
 - gcc
 - clang
