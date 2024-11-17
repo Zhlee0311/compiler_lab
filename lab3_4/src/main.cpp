@@ -12,74 +12,97 @@ std::string Grammar::start;
 
 int main()
 {
-    std::string input;
-    while (true)
+    Grammar::readGrammar();
+    if (Grammar::isLL1())
     {
-        Grammar::readGrammar();
-        if (Grammar::empty())
-        {
-            std::cout << "\033[33m" << "是否继续查询其他文法？(y/n)" << "\033[0m" << std::endl;
-            char choice;
-            std::cin >> choice;
-            if (choice == 'n')
-            {
-                break;
-            }else{
-                continue;
-            }
-        }
-        Grammar::printGrammar();
-
-        while (true)
-        {
-            std::cout << "\033[33m" << "输入待查询的文法符号: " << "\033[0m" << std::endl;
-            std::cin >> input;
-
-            auto res1 = Grammar::firstGet(input);
-            auto res2 = Grammar::followGet(input);
-
-
-            std::cout << "\033[36m" << "First(" << input << ") = {";
-            for (auto it = res1.begin(); it != res1.end(); ++it)
-            {
-                std::cout << *it;
-                if (std::next(it) != res1.end())
-                { // 检查是否是最后一个元素
-                    std::cout << ", ";
-                }
-            }
-            std::cout << "}" << "\033[0m" << std::endl;
-
-            std::cout << "\033[32m" << "Follow(" << input << ") = {";
-            for (auto it = res2.begin(); it != res2.end(); ++it)
-            {
-                std::cout << *it;
-                if (std::next(it) != res2.end())
-                { // 检查是否是最后一个元素
-                    std::cout << ", ";
-                }
-            }
-            std::cout << "}" << "\033[0m" << std::endl;
-
-
-            std::cout << "\033[33m" << "是否继续查询该文法的符号？(y/n)" << "\033[0m" << std::endl;
-            char choice;
-            std::cin >> choice;
-            if (choice == 'n')
-            {
-                break;
-            }
-        }
-
-        Grammar::clearGrammar();
-        std::cout << "\033[33m" << "是否继续查询其他文法？(y/n)" << "\033[0m" << std::endl;
-        char choice;
+        std::cout << "\033[32m" << "该文法是LL(1)文法" << "\033[0m" << std::endl;
+    }
+    else
+    {
+        std::cout << "\033[33m" << "该文法非LL(1)文法，是否进行改造: " << "\033[0m" << std::endl;
+        std::cout << "\033[34m" << "1. 提取左公因子" << "\033[0m" << std::endl;
+        std::cout << "\033[34m" << "2. 消除左递归" << "\033[0m" << std::endl;
+        std::cout << "\033[34m" << "3. 提取左公因子并消除左递归" << "\033[0m" << std::endl;
+        int choice;
         std::cin >> choice;
-        if (choice == 'n')
+        switch (choice)
         {
+        case 1:
+            Grammar::exlp();
             break;
+        case 2:
+            Grammar::elr();
+            break;
+        case 3:
+            Grammar::exlp();
+            Grammar::elr();
+            break;
+        }
+        if (Grammar::isLL1())
+        {
+            std::cout << "\033[32m" << "改造后的文法是LL(1)文法" << "\033[0m" << std::endl;
+        }
+        else
+        {
+            std::cout << "\033[31m" << "改造后的文法仍非LL(1)文法" << "\033[0m" << std::endl;
         }
     }
 
+
+    Grammar::printGrammar();
+
+
+    std::cout << "Nterminal: ";
+    for (const auto &nt : Grammar::nterminal)
+    {
+        std::cout << nt << ", ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Terminal: ";
+    for (const auto &t : Grammar::terminal)
+    {
+        std::cout << t << ", ";
+    }
+    std::cout << std::endl;
+
+
+    std::string test = "E'";
+    auto first = Grammar::firstGet(test);
+    auto follow = Grammar::followGet(test);
+    std::cout << "First: ";
+    for (const auto &f : first)
+    {
+        std::cout << f << ", ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Follow: ";
+    for (const auto &f : follow)
+    {
+        std::cout << f << ", ";
+    }
+    std::cout << std::endl;
+
+
+    std::cout << "Select: ";
+    auto grammar = Grammar::getGrammar();
+    for(const auto & [left,rights]:grammar){
+        for(const auto &right:rights){
+            auto select = Grammar::selectGet(left,right);
+            for(const auto &s:select){
+                std::cout << left << " -> " << right << " : " << s << std::endl;
+            }
+        }
+        std::cout << std::endl;
+    }
+
+    std::string sentence;
+    std::cout << "\033[33m" << "请输入1个待分析的句子: " << "\033[0m" << std::endl;
+    std::cin >> sentence;
+
+
+    Grammar::parseLL1(sentence);
+    Grammar::clearGrammar();
     return 0;
 }

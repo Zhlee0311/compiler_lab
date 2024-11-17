@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(FirstFollow) 
+project(LL1) 
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE CXX_STANDARD_REQUIRED True)
@@ -11,5 +11,5 @@ include_directories(include)
 file(GLOB SOURCES "src/*.cpp")
 
 
-add_executable(ff ${SOURCES})
+add_executable(ll1 ${SOURCES})
 

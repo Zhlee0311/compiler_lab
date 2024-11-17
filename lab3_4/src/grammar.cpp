@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <cctype>
 #include <queue>
+#include <stack>
+#include <functional>
 
 namespace fs = std::filesystem;
 
@@ -24,13 +26,18 @@ void Grammar::updateNterminal()
             {
                 continue; // 忽略空串
             }
-            for (const auto &ch : right)
+            for (int i = 0; i < right.size(); i++)
             {
-                if (isupper(ch))
+                if (isupper(right[i]) && right[i + 1] != '\'')
                 {
-                    nterminal.insert(std::string(1, ch));
-                } // 大写字母即为非终结符，仅考虑单个字符
-            }
+                    nterminal.insert(std::string(1, right[i]));
+                }
+                else if (isupper(right[i]) && right[i + 1] == '\'')
+                {
+                    nterminal.insert(right.substr(i, 2));
+                    i++;
+                }
+            } // 大写字母即为非终结符，仅考虑单个字符
         }
     }
 }
@@ -51,10 +58,10 @@ void Grammar::updateTerminal()
             }
             for (const auto &ch : right)
             {
-                if (!isupper(ch))
+                if (!isupper(ch) && ch != '\'')
                 {
                     terminal.insert(std::string(1, ch));
-                } // 不是大写字母即为终结符，仅考虑单个字符
+                } // 不是大写字母且不是'即为终结符，仅考虑单个字符
             }
         }
     }
@@ -306,6 +313,8 @@ void Grammar::firstInit()
         firstSets[t].insert(t);
     }
 
+    firstSets[epsilon].insert(epsilon);
+
     bool changed;
     do
     {
@@ -328,7 +337,19 @@ void Grammar::firstInit()
                 while (i < right.size() && existEpsilon)
                 {
                     existEpsilon = false;
-                    std::string symbol(1, right[i]);
+
+                    std::string symbol;
+
+                    if (nterminal.count(right.substr(i, 1)) && right[i + 1] == '\'')
+                    {
+                        symbol = right.substr(i, 2);
+                        i++;
+                    }
+                    else
+                    {
+                        symbol = right.substr(i, 1);
+                    }
+
                     for (const auto &firstSymbol : firstSets[symbol])
                     {
                         if (firstSymbol != epsilon)
@@ -376,7 +397,19 @@ std::unordered_set<std::string> Grammar::firstGet(std::string GramStr)
         while (i < GramStr.size() && epsilonInAll)
         {
             epsilonInAll = false;
-            for (const auto &symbol : firstSets[std::string(1, GramStr[i])])
+
+            std::string symbol;
+            if (nterminal.count(GramStr.substr(i, 1)) && GramStr[i + 1] == '\'')
+            {
+                symbol = GramStr.substr(i, 2);
+                i++;
+            }
+            else
+            {
+                symbol = GramStr.substr(i, 1);
+            }
+
+            for (const auto &symbol : firstSets[symbol])
             {
                 if (symbol != epsilon)
                 {
@@ -423,8 +456,8 @@ void Grammar::followInit()
                     if (pos == std::string::npos)
                     {
                         continue;
-                    } // 该产生式中不含此非终结符
-                    else if (pos == right.size() - 1)
+                    }
+                    else if (pos == right.size() - nt.size())
                     {
                         auto frontAppend = followSets[left];
                         for (const auto &symbol : frontAppend)
@@ -434,10 +467,10 @@ void Grammar::followInit()
                                 changed = true;
                             }
                         }
-                    }// 该非终结符在产生式右部的最后
+                    } // 该非终结符在产生式右部的最后
                     else
                     {
-                        auto backAppend = firstGet(right.substr(pos + 1));
+                        auto backAppend = firstGet(right.substr(pos + nt.size()));
                         if (backAppend.count(epsilon))
                         {
                             auto frontAppend = followSets[left];
@@ -473,4 +506,142 @@ std::unordered_set<std::string> Grammar::followGet(std::string Nterminal)
 bool Grammar::empty()
 {
     return grammar.empty();
+}
+
+std::unordered_set<std::string> Grammar::selectGet(std::string left, std::string right)
+{
+    std::unordered_set<std::string> part1 = firstGet(right);
+    std::unordered_set<std::string> part2 = followGet(left);
+
+    if (part1.count(epsilon))
+    {
+        part1.erase(epsilon);
+        part1.insert(part2.begin(), part2.end());
+    }
+
+    return part1;
+}
+
+bool Grammar::isLL1()
+{
+    auto check = [](std::unordered_set<std::string> a, std::unordered_set<std::string> b) -> bool
+    {
+        for (const auto &element : a)
+        {
+            if (b.count(element))
+            {
+                return true;
+            }
+        }
+        return false;
+    }; // 检查两个集合有无交集
+
+    for (const auto &[left, rights] : grammar)
+    {
+        for (auto it_fast = rights.begin(); it_fast != rights.end(); it_fast++)
+        {
+            for (auto it_slow = rights.begin(); it_slow != it_fast; it_slow++)
+            {
+                auto select1 = selectGet(left, *it_fast);
+                auto select2 = selectGet(left, *it_slow);
+
+                if (check(select1, select2))
+                {
+                    return false;
+                } // 若有交集，则不是LL1文法
+            }
+        }
+    }
+    return true;
+}
+
+void Grammar::parseLL1(std::string sentence)
+{
+
+    std::unordered_map<std::pair<std::string, std::string>, std::string,
+                       std::function<size_t(const std::pair<std::string, std::string> &)>>
+        table(
+            10,
+            [](const std::pair<std::string, std::string> &p) -> size_t
+            {
+                size_t h1 = std::hash<std::string>()(p.first);
+                size_t h2 = std::hash<std::string>()(p.second);
+                return h1 ^ (h2 << 1);
+            });
+    //<终结符，非终结符> <替换式>，终结符遇到非终结符，用替换式替换掉终结符
+
+    for (const auto &[left, rights] : grammar)
+    {
+        for (const auto &right : rights)
+        {
+            auto select = selectGet(left, right);
+            if (!select.empty())
+            {
+                for (const auto &s : select)
+                {
+                    table[{left, s}] = right;
+                }
+            }
+        }
+    }
+
+    std::stack<std::string> tmp; // 存储分析过程的辅助栈
+    tmp.push("$");
+    tmp.push(start);
+
+    sentence.append("$");
+    std::string matched = ""; // 存储已匹配的字符串
+
+    while (!tmp.empty())
+    {
+        std::string curTop = tmp.top();
+        std::string curInput = std::string(1, *sentence.begin());
+        tmp.pop();
+        if (nterminal.count(curTop))
+        {
+            if (!table.count({curTop, curInput}))
+            {
+                std::cout << "\033[31m" << "Syntax Error: " << "No production for " << curTop << " => " << curInput << "\033[0m" << std::endl;
+                return;
+            }
+            else
+            {
+                std::string replace = table[{curTop, curInput}];
+                if (replace != epsilon)
+                {
+                    int pos = replace.size() - 1;
+                    while (pos >= 0)
+                    {
+                        if (replace[pos] == '\'')
+                        {
+                            tmp.push(replace.substr(pos - 1, 2));
+                            pos -= 2;
+                        }
+                        else
+                        {
+                            tmp.push(std::string(1, replace[pos]));
+                            pos--;
+                        }
+                    }
+                }
+                std::cout << "\033[34m" << "Replace: " << curTop << " -> " << replace << "\033[0m" << std::endl;
+            }
+        } // 若当前处理的是非终结符
+        else
+        {
+            if (curTop == curInput)
+            {
+                matched += curInput;
+                sentence.erase(0, 1);
+                std::cout << "\033[32m" << "Match: " << curInput << "\033[0m" << std::endl;
+                std::cout << "\033[36m" << "Now Matched: " << matched << "\033[0m" << std::endl;
+            }
+            else
+            {
+                std::cout << "\033[31m" << "Syntax Error: " << "No matched terminal for " << curInput << "\033[0m" << std::endl;
+                return;
+            }
+        } // 若当前处理的是终结符
+    }
+    std::cout << "\033[33m" << "Parsing Success: " << matched << "\033[0m" << std::endl;
 }

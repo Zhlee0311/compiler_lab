@@ -7,10 +7,10 @@
 
 class Grammar
 {
-private:
+public:
     /**
      * @brief 所有的非终结符，无论是否在产生式左边出现过
-     * @attention 判断规则：大写字母即为非终结符
+     * @attention 判断规则：大写字母即为非终结符，仅考虑单个字符
      */
     static std::unordered_set<std::string> nterminal;
 
@@ -21,7 +21,7 @@ private:
     static std::unordered_set<std::string> terminal;
 
     /**
-     * @brief 所有可以直接产生ε的的非终结符
+     * @brief 所有可以 直接 产生ε的的非终结符
      */
     static std::unordered_set<std::string> epsilons;
 
@@ -57,9 +57,13 @@ private:
     static void updateTerminal();
     static void updateEpsilons();
 
-private:
+public:
     static void firstInit();
     static void followInit();
+    /**
+     * @brief 求一条产生式的select集
+     */
+    static std::unordered_set<std::string> selectGet(std::string left, std::string right);
 
 public:
     static std::unordered_set<std::string> firstGet(std::string GramStr);
@@ -73,6 +77,19 @@ public:
     static std::unordered_map<std::string, std::unordered_set<std::string>> getGrammar();
     static void elr();
     static void exlp();
+
+public:
+    /**
+     * @brief 检查是否为LL(1)文法
+     * @retval true 是LL(1)文法, false 不是LL(1)文法
+     */
+    static bool isLL1();
+
+    /**
+     * @brief LL1文法的预测分析
+     * @attention 仅当isLL1()返回true时使用
+     */
+    static void parseLL1(std::string sentence);
 };
 
 #endif
