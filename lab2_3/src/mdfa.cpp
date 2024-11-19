@@ -116,11 +116,19 @@ MDFA *MDFA::build(DFA *dfa)
         for (auto it = curSet.begin(); it != curSet.end();)
         {
             bool moved = false;
+
+            std::unordered_set<char> conditions; // 当前处理的状态 的边中的 转移条件符号
+            for (const auto &edge : (*it)->getEdges())
+            {
+                conditions.insert(edge.first);
+            }
+
             for (const auto &ch : Share::alphabet)
             {
                 auto target = search(*it, ch);
                 auto real = firstTarget[ch];
-                if (!check(target, real))
+                // 若当前的状态存在以此ch为条件的转移，且转移的目标状态与第一个状态不属于同一个集合，则将当前状态移出当前集合
+                if (!check(target, real) && conditions.count(ch))
                 {
                     trashSet.insert(*it);
                     it = curSet.erase(it);
