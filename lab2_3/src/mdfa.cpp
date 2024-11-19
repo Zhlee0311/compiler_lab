@@ -28,30 +28,27 @@ MDFA *MDFA::build(DFA *dfa)
     std::map<int, StateDFA *> statesDFA = StateDFA::getStates(); // 所有的dfa状态（dfa状态已确定，可以直接使用拷贝）
     // auto statesMDFA = StateMDFA::getStates(); // 所有的mdfa状态
 
-    for (const auto &state : statesDFA)
+    for (const auto &[id, state] : statesDFA)
     {
-        bool isAcc = false;
-        for (const auto &acc : dfa_accs)
+        if (dfa_accs.count(state))
         {
-            if (acc->getId() == state.second->getId())
-            {
-                isAcc = true;
-                break;
-            }
-        }
-        if (isAcc)
-        {
-            setAcc.insert(state.second);
+            setAcc.insert(state);
         }
         else
         {
-            setNAcc.insert(state.second);
+            setNAcc.insert(state);
         }
     }
 
     std::deque<std::set<StateDFA *>> allSet;
-    allSet.push_back(setAcc);
-    allSet.push_back(setNAcc);
+    if (!setAcc.empty())
+    {
+        allSet.push_back(setAcc);
+    }
+    if (!setNAcc.empty())
+    {
+        allSet.push_back(setNAcc);
+    }
 
     auto search = [](StateDFA *dfa_state, char ch) -> int
     {
@@ -112,8 +109,8 @@ MDFA *MDFA::build(DFA *dfa)
 
         for (const auto &ch : Share::alphabet)
         {
-            auto target = search(firstState, ch); // 当前处理的集合的第一个状态在面对 "ch" 时转移到的状态的Id
-            firstTarget[ch] = target;             // 不管结果如何都插入，-1也插入，代表没有对应的转换状态
+            int target = search(firstState, ch); // 当前处理的集合的第一个状态在面对 "ch" 时转移到的状态的Id
+            firstTarget[ch] = target;            // 不管结果如何都插入，-1也插入，代表没有对应的转换状态
         } // 构建：当前处理的集合中，第一个状态面对不同符号的转换情况
 
         for (auto it = curSet.begin(); it != curSet.end();)
