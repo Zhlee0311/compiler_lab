@@ -5,6 +5,7 @@
 #include "state_mdfa.hpp"
 #include <deque>
 #include <algorithm>
+#include <iostream>
 
 MDFA::MDFA(StateMDFA *param1, std::set<StateMDFA *> param2)
 {
@@ -41,13 +42,13 @@ MDFA *MDFA::build(DFA *dfa)
     }
 
     std::deque<std::set<StateDFA *>> allSet;
-    if (!setAcc.empty())
-    {
-        allSet.push_back(setAcc);
-    }
     if (!setNAcc.empty())
     {
         allSet.push_back(setNAcc);
+    }
+    if (!setAcc.empty())
+    {
+        allSet.push_back(setAcc);
     }
 
     auto search = [](StateDFA *dfa_state, char ch) -> int
@@ -63,21 +64,31 @@ MDFA *MDFA::build(DFA *dfa)
         return -1; // 没找到则返回-1
     }; // 寻找一个dfa状态在某个符号条件下的转移状态Id，若无对应的转移状态则返回-1
 
-    auto check = [&allSet, &statesDFA](int Id_1, int Id_2) -> bool
+    /**
+     * @brief 判断两个 dfa_state 在”逻辑“上是否属于同一个集合
+     * @param target  当前状态的转移结果
+     * @param real 当前集合中第一个状态的转移结果
+     * @param curSet 当前处理的集合
+     */
+    auto check = [&allSet, &statesDFA](int target, int real, std::set<StateDFA *> curSet) -> bool
     {
-        auto statesMDFA = StateMDFA::getStates(); // 在检查前需要获取MDFA的所有状态，以免丢失上一次更新
-
-        if ((Id_1 >= 0 && Id_2 < 0) || (Id_1 < 0 && Id_2 >= 0))
-        {
-            return false;
-        } // Id为负 和 Id非负 不属于同一个集合
-        else if (Id_1 < 0 && Id_2 < 0)
+        // 需要考虑target和real不全大于0的情况
+        if (target == -1)
         {
             return true;
-        } // Id均为负代表均不存在，可以认为 “属于同一个集合”
+        }
+        else if (real == -1)
+        {
+            auto st_0 = statesDFA[target];
+            if (curSet.count(st_0))
+            {
+                return true;
+            }
+            return false;
+        }
 
-        auto st_1 = statesDFA[Id_1];
-        auto st_2 = statesDFA[Id_2];
+        auto st_1 = statesDFA[target];
+        auto st_2 = statesDFA[real];
         for (const auto &curSet : allSet)
         {
             if (curSet.count(st_1) && curSet.count(st_2))
@@ -85,7 +96,7 @@ MDFA *MDFA::build(DFA *dfa)
                 return true;
             }
         } // 首先遍历当前未处理完的dfa状态的集合，检查其中是否存在两个Id代表的dfa状态
-        for (const auto &state : statesMDFA)
+        for (const auto &state : StateMDFA::getStates())
         {
             auto ent = state.second->getEntity();
             if (ent.count(st_1) && ent.count(st_2))
@@ -96,83 +107,115 @@ MDFA *MDFA::build(DFA *dfa)
         return false;
     }; // 判断两个 dfa_state 是否属于同一个集合（若Id为-1则代表不存在此状态）
 
-    std::unordered_map<char, int> firstTarget; // 当前处理的集合中，第一个状态面对不同符号的转换情况
-    std::set<StateDFA *> trashSet;             // 当前处理的集合中，与第一个状态不属于同类的状态需要被移出并插入队尾，进行下一轮处理
+    std::unordered_map<char, int> firstTarget;   // 当前处理的集合中，第一个状态面对不同符号的转换情况
+    std::set<StateDFA *> trashSet;               // 当前处理的集合的某一个状态位于首部时，移除状态的方案
+    std::vector<std::set<StateDFA *>> trashSets; // 当前处理的集合中，所有移除状态的方案
 
     while (!allSet.empty())
     {
-        firstTarget.clear();
-        trashSet.clear();
-
+        trashSets.clear();
         std::set<StateDFA *> &curSet = allSet.front(); // 当前处理的集合
-        StateDFA *firstState = *curSet.begin();        // 当前处理的集合的第一个状态
 
-        for (const auto &ch : Share::alphabet)
+        // 考虑不同集合位于首部的情况
+        for (auto &first : curSet)
         {
-            int target = search(firstState, ch); // 当前处理的集合的第一个状态在面对 "ch" 时转移到的状态的Id
-            firstTarget[ch] = target;            // 不管结果如何都插入，-1也插入，代表没有对应的转换状态
-        } // 构建：当前处理的集合中，第一个状态面对不同符号的转换情况
-
-        for (auto it = curSet.begin(); it != curSet.end();)
-        {
-            bool moved = false;
-
-            std::unordered_set<char> conditions; // 当前处理的状态 的边中的 转移条件符号
-            for (const auto &edge : (*it)->getEdges())
-            {
-                conditions.insert(edge.first);
-            }
+            firstTarget.clear();
+            trashSet.clear();
 
             for (const auto &ch : Share::alphabet)
             {
-                auto target = search(*it, ch);
-                auto real = firstTarget[ch];
-                // 若当前的状态存在以此ch为条件的转移，且转移的目标状态与第一个状态不属于同一个集合，则将当前状态移出当前集合
-                if (!check(target, real) && conditions.count(ch))
+                int target = search(first, ch); // 当前处理的集合的第一个状态在面对 "ch" 时转移到的状态的Id
+                firstTarget[ch] = target;       // 不管结果如何都插入，-1也插入，代表没有对应的转换状态
+            } // 构建：当前处理的集合中，第一个状态面对不同符号的转换情况
+
+            for (auto it = curSet.begin(); it != curSet.end();)
+            {
+                bool moved = false;
+                for (const auto &[ch, _] : (*it)->getEdges())
                 {
-                    trashSet.insert(*it);
-                    it = curSet.erase(it);
-                    moved = true;
-                    break;
+                    auto target = search(*it, ch);
+                    auto real = firstTarget[ch];
+                    // 若当前的状态存在以此ch为条件的转移，且与第一个状态的转移结果在逻辑上不属于同一个集合，则将其移出当前集合
+                    if (!check(target, real, curSet))
+                    {
+                        trashSet.insert(*it);
+                        moved = true; // 逻辑删除
+                        it++;
+                        break;
+                    }
+                }
+                if (!moved)
+                {
+                    it++;
                 }
             }
-            if (!moved)
+            trashSets.push_back(trashSet);
+        }
+
+        // 从当前集合中移除状态
+        int index = 0;
+        for (int i = 0; i < trashSets.size(); i++)
+        {
+            if (trashSets[i].empty())
             {
-                ++it;
+                index = i;
+                break;
             }
-        } // 继续处理当前的集合的剩余状态
+            else if (trashSets[i].size() < trashSets[index].size())
+            {
+                index = i;
+            }
+        }
+
+        for (auto &state : trashSets[index])
+        {
+            curSet.erase(state);
+        }
 
         new StateMDFA(curSet);
         allSet.pop_front();
 
-        if (!trashSet.empty())
+        if (!trashSets[index].empty())
         {
-            allSet.push_back(trashSet);
+            allSet.push_back(trashSets[index]);
         }
     }
 
     StateMDFA *param1 = nullptr;
     std::set<StateMDFA *> param2;
 
+    for (const auto &[id, state] : StateMDFA::getStates())
+    {
+        std::cout << id << ": ";
+        auto ent = state->getEntity();
+        for (const auto &dfaState : ent)
+        {
+            std::cout << dfaState->getId() << " ";
+        }
+        std::cout << std::endl;
+    }
+
     for (auto &mdfa_state_1 : StateMDFA::getStates())
     {
         auto curState = mdfa_state_1.second; // 当前的MDFA状态
         auto curEnt = curState->getEntity(); // 当前MDFA状态的实体（一个DFA状态的集合）
-        auto curIndiv = *curEnt.begin();     // 当前MDFA状态的实体的第一个元素（因为实体里的状态是等价状态，因此可以用这个状态代表整个实体）
 
-        for (const auto &ch : Share::alphabet)
+        std::unordered_map<char, std::unordered_set<int>> hasLinked;
+
+        // 需要遍历当前MDFA状态实体中的每一个DFA状态，根据他们的边建立连接关系
+        for (const auto &dfaState : curEnt)
         {
-            auto target = search(curIndiv, ch);
-            if (target == -1)
-                continue;
-            for (auto &mdfa_state_2 : StateMDFA::getStates())
+            for (const auto &edge : dfaState->getEdges())
             {
-                auto tgtState = mdfa_state_2.second; // 目标状态可能存在的MDFA状态
-                auto tgtEnt = tgtState->getEntity(); // 目标状态可能存在的MDFA状态的实体（一个DFA状态的集合）
-                if (tgtEnt.count(statesDFA[target]))
+                for (auto &mdfa_state_2 : StateMDFA::getStates())
                 {
-                    curState->link(ch, tgtState);
-                    break;
+                    auto ent = mdfa_state_2.second->getEntity();
+                    if (ent.count(statesDFA[edge.second]) && !hasLinked[edge.first].count(mdfa_state_2.first))
+                    {
+                        curState->link(edge.first, mdfa_state_2.second);
+                        hasLinked[edge.first].insert(mdfa_state_2.first);
+                        break;
+                    }
                 }
             }
         }
