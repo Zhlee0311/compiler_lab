@@ -41,6 +41,20 @@ MDFA *MDFA::build(DFA *dfa)
         }
     }
 
+    /*
+    //用于验证初始的接受状态和非接受状态
+    std::cout << "setAcc: ";
+    for (const auto &state : setAcc)
+    {
+        std::cout << state->getId() << " ";
+    }
+    std::cout << "\nsetNAcc: ";
+    for (const auto &state : setNAcc)
+    {
+        std::cout << state->getId() << " ";
+    }
+    */
+
     std::deque<std::set<StateDFA *>> allSet;
     if (!setNAcc.empty())
     {
@@ -51,6 +65,13 @@ MDFA *MDFA::build(DFA *dfa)
         allSet.push_back(setAcc);
     }
 
+    /**
+     * @brief 寻找一个dfa状态在某个符号条件下的转移状态Id
+     * @param dfa_state 当前的dfa状态
+     * @param ch 符号条件
+     * @return int 转移状态的Id
+     * @attention 当Id为-1时代表不存在此转移状态，逻辑上即这个状态在ch条件下指向自己
+     */
     auto search = [](StateDFA *dfa_state, char ch) -> int
     {
         auto edges = dfa_state->getEdges();
@@ -69,13 +90,18 @@ MDFA *MDFA::build(DFA *dfa)
      * @param target  当前状态的转移结果
      * @param real 当前集合中第一个状态的转移结果
      * @param curSet 当前处理的集合
+     * @attention 当Id为-1时代表不存在此转移状态，逻辑上即这个状态在ch条件下指向自己
      */
     auto check = [&allSet, &statesDFA](int target, int real, std::set<StateDFA *> curSet) -> bool
     {
         // 需要考虑target和real不全大于0的情况
         if (target == -1)
         {
-            return true;
+            if ((real != -1 && curSet.count(statesDFA[real])) || real == -1)
+            {
+                return true;
+            }
+            return false;
         }
         else if (real == -1)
         {
@@ -131,10 +157,19 @@ MDFA *MDFA::build(DFA *dfa)
             for (auto it = curSet.begin(); it != curSet.end();)
             {
                 bool moved = false;
-                for (const auto &[ch, _] : (*it)->getEdges())
+                for (const auto &ch : Share::alphabet)
                 {
                     auto target = search(*it, ch);
                     auto real = firstTarget[ch];
+
+                    /*
+                    //用于验证不同Id的DFA状态的转移情况
+                    if ((*it)->getId() == 2)
+                    {
+                        std::cout << "target: " << target << " real: " << real << std::endl;
+                    }
+                    */
+
                     // 若当前的状态存在以此ch为条件的转移，且与第一个状态的转移结果在逻辑上不属于同一个集合，则将其移出当前集合
                     if (!check(target, real, curSet))
                     {
@@ -152,7 +187,7 @@ MDFA *MDFA::build(DFA *dfa)
             trashSets.push_back(trashSet);
         }
 
-        // 从当前集合中移除状态
+        // 从当前集合中移除状态，选择移除集合数量最少的方案
         int index = 0;
         for (int i = 0; i < trashSets.size(); i++)
         {
@@ -184,6 +219,8 @@ MDFA *MDFA::build(DFA *dfa)
     StateMDFA *param1 = nullptr;
     std::set<StateMDFA *> param2;
 
+    /*
+    用于验证生成的MDFA状态是否正确
     for (const auto &[id, state] : StateMDFA::getStates())
     {
         std::cout << id << ": ";
@@ -194,6 +231,7 @@ MDFA *MDFA::build(DFA *dfa)
         }
         std::cout << std::endl;
     }
+    */
 
     for (auto &mdfa_state_1 : StateMDFA::getStates())
     {
